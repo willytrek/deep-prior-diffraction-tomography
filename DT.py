@@ -445,28 +445,22 @@ class DT:
 
     def reconstruct_with_born(self):
         # use intensity (no phase) data and try to reconstruct 3D index distribution;
-
         if self.optimize_k_directly:  # tf variables are k space
             self.initialize_k_space_domain()
         else:  # tf variables are space domain
             self.initialize_space_space_domain()
-
         # DT_recon is the scattering potiential; then to get RI:
         self.RI = self.V_to_RI(self.DT_recon)
-
         # generate k-spherical caps:
         self.generate_cap()
         self.generate_apertures()
         self.subtract_illumination()
-
         # already batched, because derived from xyz_LED_batch:
         self.k_fft_shift_batch = self.k_fft_shift
         self.xyz_caps_batch = self.xyz_caps
-
         self.pupil_phase = tf.Variable(np.zeros((self.xy_cap_n, self.xy_cap_n)),
                                        dtype=tf.float32, name='pupil_phase_function')
         pupil = tf.exp(1j * tf.to_complex64(self.pupil_phase))
-
         # error between prediction and data:
         k_space_T = tf.transpose(self.k_space, [1, 0, 2])
         forward_fourier = self.tf_gather_nd3(k_space_T, self.xyz_caps_batch)
@@ -496,9 +490,7 @@ class DT:
         else:
             self.forward_pred_field = self.DC_batch * self.forward_pred + unscattered
             self.forward_pred = tf.abs(self.forward_pred_field)
-
         self.generate_train_ops()
-
     def generate_train_ops(self):
 
         self.MSE = tf.reduce_mean((self.data_batch - self.forward_pred) ** 2)
